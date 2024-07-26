@@ -43,12 +43,12 @@ public class Utility {
     public static boolean handleCityResponse(String reponse,int ProvinceId){
         if (!TextUtils.isEmpty(reponse)){
             try {
-                JSONArray jsonArray = new JSONArray(reponse);
-                for (int i=0; i<jsonArray.length();i++){
-                    JSONObject jsonObject = jsonArray.getJSONObject(i);
+                JSONArray allCities = new JSONArray(reponse);
+                for (int i=0; i<allCities.length();i++){
+                    JSONObject cityObject = allCities.getJSONObject(i);
                     City city = new City();
-                    city.setCityName(jsonObject.getString("name"));
-                    city.setCityCode(jsonObject.getInt("id"));
+                    city.setCityName(cityObject.getString("name"));
+                    city.setCityCode(cityObject.getInt("id"));
                     city.setProvinceId(ProvinceId);
                     city.save();
                 }

@@ -37,8 +37,8 @@ import okhttp3.Response;
 
 public class ChooseAreaFragment extends Fragment {
     public static final int LEVEL_PROVINCE = 0;
-    public static final int LEVEL_CITY = 0;
-    public static final int LEVEL_COUNTY = 0;
+    public static final int LEVEL_CITY = 1;
+    public static final int LEVEL_COUNTY = 2;
 
     private ProgressDialog progressDialog;
 
@@ -106,7 +106,7 @@ public class ChooseAreaFragment extends Fragment {
                 if (currentLevel == LEVEL_COUNTY){
                     queryCities();
                 }else if (currentLevel == LEVEL_CITY){
-                    queryCounties();
+                    queryProvinces();
                 }
             }
         });
@@ -125,11 +125,9 @@ public class ChooseAreaFragment extends Fragment {
             adapter.notifyDataSetChanged();
             listView.setSelection(0);
             currentLevel = LEVEL_PROVINCE;
-            Log.d("li","222222222222222");
         }else {
             String address = "http://guolin.tech/api/china";
             queryFromServer(address,"province");
-            Log.d("li","111111111111111");
         }
     }
 
@@ -138,8 +136,8 @@ public class ChooseAreaFragment extends Fragment {
      */
     private void queryCities() {
         titleText.setText(selectedProvince.getProvinceName());
-        backbutton.setVisibility(View.GONE);
-        cityList = DataSupport.where("provinceis = ?",String.valueOf(selectedProvince.getId())).find(City.class);
+        backbutton.setVisibility(View.VISIBLE);
+        cityList = DataSupport.where("provinceid = ?",String.valueOf(selectedProvince.getId())).find(City.class);
         if (cityList.size() > 0){
             dataList.clear();
             for ( City city : cityList){
@@ -150,7 +148,7 @@ public class ChooseAreaFragment extends Fragment {
             currentLevel = LEVEL_CITY;
         }else {
             int provinceCode = selectedProvince.getProvinceCode();
-            String address = "http;//guolin.tech/api/china/"+provinceCode;
+            String address = "http://guolin.tech/api/china/"+provinceCode;
             queryFromServer(address,"city");
         }
 
@@ -161,7 +159,7 @@ public class ChooseAreaFragment extends Fragment {
 
     private void queryCounties() {
         titleText.setText(selectedCity.getCityName());
-        backbutton.setVisibility(View.GONE);
+        backbutton.setVisibility(View.VISIBLE);
         countyList = DataSupport.where("cityid = ?",String.valueOf(selectedCity.getId())).find(County.class);
         if (countyList.size() > 0){
             dataList.clear();
@@ -174,7 +172,7 @@ public class ChooseAreaFragment extends Fragment {
         }else {
             int provinceCode = selectedProvince.getProvinceCode();
             int citycode = selectedCity.getCityCode();
-            String address = "http;//guolin.tech/api/china/"+provinceCode+"/"+citycode;
+            String address = "http://guolin.tech/api/china/"+provinceCode+"/"+citycode;
             queryFromServer(address,"county");
         }
     }
@@ -189,8 +187,6 @@ public class ChooseAreaFragment extends Fragment {
                     public void run() {
                         closeProgressDialog();
                     }
-
-
                 });
             }
 
@@ -198,12 +194,12 @@ public class ChooseAreaFragment extends Fragment {
             public void onResponse(Call call, Response response) throws IOException {
                 String responseText = response.body().string();
                 boolean result =false;
-                if ("province".equals(responseText)){
+                if ("province".equals(type)){
                     result = Utility.handleProvinceResponse(responseText);
-                }else if ("city".equals(responseText)){
+                }else if ("city".equals(type)){
                     result = Utility.handleCityResponse(responseText,selectedProvince.getId());
-                }else if ("county".equals(responseText)){
-                    result = Utility.handleCountyResponse(responseText,selectedCity.getCityCode());
+                }else if ("county".equals(type)){
+                    result = Utility.handleCountyResponse(responseText,selectedCity.getId());
                 }
                 if (result){
                     getActivity().runOnUiThread(new Runnable() {
@@ -214,8 +210,8 @@ public class ChooseAreaFragment extends Fragment {
                                     queryProvinces();
                             }else if ("city".equals(type)){
                                     queryCities();
-                            }else if ("conuty".equals(type)){
-                                queryCounties();
+                            }else if ("county".equals(type)){
+                                     queryCounties();
                             }
                         }
                     });
@@ -226,7 +222,7 @@ public class ChooseAreaFragment extends Fragment {
 
 
     private void closeProgressDialog() {
-        if (progressDialog != null && !progressDialog.isShowing()) {
+        if (progressDialog != null && progressDialog.isShowing()) {
             progressDialog.dismiss();
         }
     }
